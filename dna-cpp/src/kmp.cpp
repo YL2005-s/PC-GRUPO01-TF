@@ -1,22 +1,22 @@
-#include <vector>
-#include <string>
-using namespace std;
+#include "kmp.hpp"
+#include <iostream>
 
-//arreglo LPS
-vector<int> buildLPS(const string &pattern) {
-    int m = pattern.size();
-    vector<int> lps(m, 0);
-    int len = 0, i = 1;
+// Función para preprocesar el patrón y construir la tabla LPS 
+std::vector<int> computeLPS(const std::string& pattern) {
+    int m = pattern.length();
+    std::vector<int> lps(m, 0);
+    int length = 0; 
+    int i = 1;
 
     while (i < m) {
-        if (pattern[i] == pattern[len]) {
-            len++;
-            lps[i] = len;
+        if (pattern[i] == pattern[length]) {
+            length++;
+            lps[i] = length;
             i++;
         } else {
-            if (len != 0)
-                len = lps[len - 1];
-            else {
+            if (length != 0) {
+                length = lps[length - 1];
+            } else {
                 lps[i] = 0;
                 i++;
             }
@@ -25,24 +25,39 @@ vector<int> buildLPS(const string &pattern) {
     return lps;
 }
 
-// Algoritmo KMP
-vector<int> KMPSearch(const string &text, const string &pattern) {
-    vector<int> results;
-    auto lps = buildLPS(pattern);
-    int i = 0, j = 0;
+// Función de búsqueda KMP.
+// Devuelve las posiciones de las coincidencias, permitiendo solapamientos.
+std::vector<int> KMPSearch(const std::string& text, const std::string& pattern) {
+    int n = text.length();
+    int m = pattern.length();
+    if (m == 0 || n == 0 || m > n) {
+        return {}; 
+    }
 
-    while (i < text.size()) {
+    std::vector<int> lps = computeLPS(pattern);
+    std::vector<int> matches;
+
+    int i = 0; 
+    int j = 0; 
+
+    while (i < n) {
         if (pattern[j] == text[i]) {
-            i++; j++;
+            i++;
+            j++;
         }
-        if (j == pattern.size()) {
-            results.push_back(i - j);
-            j = lps[j - 1];
-        } else if (i < text.size() && pattern[j] != text[i]) {
-            if (j != 0) j = lps[j - 1];
-            else i++;
+
+        if (j == m) {
+            matches.push_back(i - j); 
+            
+            j = lps[j - 1]; 
+        } else if (i < n && pattern[j] != text[i]) {
+            if (j != 0) {
+                j = lps[j - 1];
+            } else {
+                i++;
+            }
         }
     }
-    return results;
-}
 
+    return matches;
+}
