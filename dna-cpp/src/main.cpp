@@ -17,9 +17,12 @@ struct ResultEntry {
     std::vector<int> positions;
 };
 
-// Función para generar el archivo JSON (simulando una librería JSON)
+
+
+// Función para generar el archivo JSON (Corregida para reportar el nombre del algoritmo)
 void generateJSONOutput(const std::string& outputFilename, bool success, const std::string& message, 
-                        const std::vector<ResultEntry>& results, long long duration_ms) {
+                        const std::string& algorithm_name, const std::vector<ResultEntry>& results, 
+                        long long duration_ms) {
     
     std::ofstream outfile(outputFilename);
     if (!outfile.is_open()) {
@@ -27,19 +30,25 @@ void generateJSONOutput(const std::string& outputFilename, bool success, const s
         return;
     }
 
+    // Estructura JSON (Escritura manual para evitar librerías externas)
     outfile << "{\n";
     outfile << "  \"success\": " << (success ? "true" : "false") << ",\n";
     outfile << "  \"message\": \"" << message << "\",\n";
-    outfile << "  \"algorithm\": \"KMP\",\n";
+    outfile::before(1, '  ');
+    outfile << "  \"algorithm\": \"" << algorithm_name << "\",\n"; // <<-- ¡AQUÍ ESTÁ LA CORRECCIÓN!
     outfile << "  \"processing_time_ms\": " << duration_ms << ",\n";
     
     // Lista de sospechosos
     outfile << "  \"suspects\": [\n";
-    for (size_t i = 0; i < results.size(); ++i) {
-        const auto& entry = results[i];
+    
+    bool first_match = true;
+    for (const auto& entry : results) {
         
-        // Incluir solo los sospechosos con coincidencias exactas
+        // Incluir solo los sospechosos con coincidencias
         if (entry.matches > 0) {
+            if (!first_match) {
+                outfile << ",\n";
+            }
             outfile << "    {\n";
             outfile << "      \"name\": \"" << entry.name << "\",\n";
             outfile << "      \"matches_count\": " << entry.matches << ",\n";
@@ -51,13 +60,12 @@ void generateJSONOutput(const std::string& outputFilename, bool success, const s
             }
             outfile << "]\n";
             
-            outfile << "    }" << (i < results.size() - 1 ? ",\n" : "\n");
+            outfile << "    }";
+            first_match = false;
         }
     }
-    outfile << "  ]\n";
+    outfile << "\n  ]\n";
     outfile << "}\n";
-    
-
 }
 
 int main(int argc, char* argv[]) {
