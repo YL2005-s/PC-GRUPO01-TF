@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 
@@ -6,18 +7,28 @@ dotenv.config();
 
 export const executeCppMatcher = (csvPath, patron, algoritmo) => {
     return new Promise((resolve, reject) => {
-        const executable = process.env.CPP_EXECUTABLE_PATH || './cpp/build/dna_engine.exe';
+        const executable = process.env.CPP_EXECUTABLE_PATH;
+        if (!executable) {
+            return reject(new Error('No se encontró CPP_EXECUTABLE_PATH en el .env'));
+        }
 
-        console.log('Ejecutando:', executable, [csvPath, patron, algoritmo]);
+        // Carpeta para resultados JSON
+        const resultsDir = process.env.CPP_RESULTS_DIR;
+        if (!resultsDir) throw new Error('No se encontró CPP_RESULTS_DIR en el .env');
 
-        const cppProcess = spawn(executable, [csvPath, patron, algoritmo]);
+        if (!fs.existsSync(resultsDir)) {
+            fs.mkdirSync(resultsDir, { recursive: true });
+        }
 
-        let stdoutData = '';
-        let stderrData = '';
+        const outputJsonPath = path.join(resultsDir, 'salida.json');
 
-        cppProcess.stdout.on('data', (data) => {
-            stdoutData += data.toString();
+        console.log('Ejecutando:', executable, [csvPath, patron, algoritmo, outputJsonPath]);
+
+        const cppProcess = spawn(executable, [csvPath, patron, algoritmo, outputJsonPath], {
+            windowsHide: true,
         });
+
+        let stderrData = '';
 
         cppProcess.stderr.on('data', (data) => {
             stderrData += data.toString();
@@ -26,16 +37,33 @@ export const executeCppMatcher = (csvPath, patron, algoritmo) => {
 
         cppProcess.on('close', (code) => {
             if (code !== 0) {
-                reject(new Error(`Proceso C++ terminó con código ${code}: ${stderrData}`));
-                return;
+                return reject(
+                    new Error(`Proceso C++ terminó con código ${code}: ${stderrData || 'sin mensaje'}`)
+                );
             }
 
-            try {
-                const resultados = JSON.parse(stdoutData);
-                resolve(resultados);
-            } catch (error) {
-                reject(new Error(`Error al parsear salida JSON: ${error.message}\nSalida: ${stdoutData}`));
-            }
+            // Leer el JSON generado por el ejecutable
+            fs.readFile(outputJsonPath, 'utf8', (err, data) => {
+                if (err) {
+                    return reject(
+                        new Error(`No se pudo leer el archivo de salida JSON: ${err.message}`)
+                    );
+                }
+
+                try {
+                    const json = JSON.parse(data);
+                    resolve(json);
+                } catch (error) {
+                    reject(
+                        new Error(
+                            `Error al parsear salida JSON: ${error.message}\nContenido: ${data}`
+                        )
+                    );
+                } finally {
+                    // Opcional: limpiar archivo generado
+                    // fs.unlink(outputJsonPath, () => {});
+                }
+            });
         });
 
         cppProcess.on('error', (error) => {
