@@ -1,54 +1,121 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
 #include <vector>
 #include <string>
-using namespace std;
+#include <sstream>
+#include <chrono>
 
-vector<int> KMPSearch(const string &text, const string &pattern);
+#include "kmp.hpp"
+#include "csv_reader.hpp"
+
+// --- Estructura para la salida JSON ---
+struct ResultEntry {
+    std::string name;
+    int matches;
+    std::vector<int> positions;
+};
+
+// Función para generar el archivo JSON (simulando una librería JSON)
+void generateJSONOutput(const std::string& outputFilename, bool success, const std::string& message, 
+                        const std::vector<ResultEntry>& results, long long duration_ms) {
+    
+    std::ofstream outfile(outputFilename);
+    if (!outfile.is_open()) {
+        std::cerr << "ERROR: No se pudo crear el archivo de salida JSON." << std::endl;
+        return;
+    }
+
+    outfile << "{\n";
+    outfile << "  \"success\": " << (success ? "true" : "false") << ",\n";
+    outfile << "  \"message\": \"" << message << "\",\n";
+    outfile << "  \"algorithm\": \"KMP\",\n";
+    outfile << "  \"processing_time_ms\": " << duration_ms << ",\n";
+    
+    // Lista de sospechosos
+    outfile << "  \"suspects\": [\n";
+    for (size_t i = 0; i < results.size(); ++i) {
+        const auto& entry = results[i];
+        
+        // Incluir solo los sospechosos con coincidencias exactas
+        if (entry.matches > 0) {
+            outfile << "    {\n";
+            outfile << "      \"name\": \"" << entry.name << "\",\n";
+            outfile << "      \"matches_count\": " << entry.matches << ",\n";
+            
+            // Opcional: incluir posiciones de coincidencia (solapamiento)
+            outfile << "      \"positions\": [";
+            for (size_t j = 0; j < entry.positions.size(); ++j) {
+                outfile << entry.positions[j] << (j < entry.positions.size() - 1 ? ", " : "");
+            }
+            outfile << "]\n";
+            
+            outfile << "    }" << (i < results.size() - 1 ? ",\n" : "\n");
+        }
+    }
+    outfile << "  ]\n";
+    outfile << "}\n";
+    
+
+}
 
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
-        cout << "Uso: dna_engine <archivo_csv> <patron>\n";
+    
+    // 1. Manejo de Argumentos
+    // El ejecutable espera 3 argumentos: [ruta_csv] [patron_adn] [ruta_salida_json]
+    if (argc != 4) {
+        std::cerr << "Uso: " << argv[0] << " <ruta_csv> <patron_adn> <ruta_salida_json>" << std::endl;
+        generateJSONOutput("dna-cpp/results/error.json", false, "Argumentos incompletos o incorrectos.", {}, 0);
+        return 1;
+    }
+    
+    const std::string csv_path = argv[1];
+    const std::string pattern = argv[2];
+    const std::string json_output_path = argv[3];
+    
+    // Validar patrón ( verifica longitud)
+    if (pattern.empty()) {
+        generateJSONOutput(json_output_path, false, "El patrón de ADN no puede estar vacío.", {}, 0);
         return 1;
     }
 
-    string archivoCSV = argv[1];
-    string pattern = argv[2];
+    // 2. Cargar Datos del CSV
+    SuspectList suspects;
+    if (!readCSV(csv_path, suspects)) {
+        generateJSONOutput(json_output_path, false, "Fallo al leer o validar el archivo CSV.", {}, 0);
+        return 1;
+    }
 
-    ifstream file(archivoCSV);
-    ofstream output("results/salida.json");
-
-    output << "[\n";
-    string line;
-    bool first = true;
-
-    while (getline(file, line)) {
-        string name, dna;
-        stringstream ss(line);
-        getline(ss, name, ',');
-        getline(ss, dna, ',');
-
-        auto positions = KMPSearch(dna, pattern);
-
-        if (!positions.empty()) {
-            if (!first) output << ",\n";
-            first = false;
-
-            output << "  {\n";
-            output << "    \"name\": \"" << name << "\",\n";
-            output << "    \"positions\": [";
-
-            for (size_t i = 0; i < positions.size(); i++) {
-                output << positions[i];
-                if (i < positions.size() - 1) output << ", ";
-            }
-            output << "]\n  }";
+    // 3. Ejecución de la Búsqueda y Medición de Rendimiento
+    std::vector<ResultEntry> search_results;
+    
+    auto start_time = std::chrono::high_resolution_clock::now();
+    
+    int total_matches = 0;
+    
+    // Iterar sobre todos los sospechosos y buscar el patrón en su cadena de ADN
+    for (const auto& suspect : suspects) {
+        const std::string& name = suspect.first;
+        const std::string& dna_chain = suspect.second;
+        
+        std::vector<int> matches = KMPSearch(dna_chain, pattern);
+        
+        if (!matches.empty()) {
+            total_matches += matches.size();
+            search_results.push_back({name, (int)matches.size(), matches});
         }
     }
 
-    output << "\n]";
-    cout << "Busqueda completada\n";
-    return 0;
-}
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    
+    // 4. Generación de Salida JSON y Reporte
+    std::string final_message = "Búsqueda exitosa. Se encontraron coincidencias en " + 
+                                std::to_string(search_results.size()) + " sospechoso(s).";
+    
+    generateJSONOutput(json_output_path, true, final_message, search_results, duration.count());
 
+    std::cout << "SUCCESS: " << search_results.size() << " coincidencias encontradas." << std::endl;
+    std::cout << "TIME_MS: " << duration.count() << std::endl;
+
+    return 0; 
+}
