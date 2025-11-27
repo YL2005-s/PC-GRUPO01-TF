@@ -59,9 +59,6 @@ export const executeCppMatcher = (csvPath, patron, algoritmo) => {
                             `Error al parsear salida JSON: ${error.message}\nContenido: ${data}`
                         )
                     );
-                } finally {
-                    // Opcional: limpiar archivo generado
-                    // fs.unlink(outputJsonPath, () => {});
                 }
             });
         });

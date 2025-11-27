@@ -1,140 +1,267 @@
 .historial-container {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 2rem auto;
-    padding: 0 1rem;
+    padding: 0 1rem 2rem;
 }
 
 .historial-card {
-    background: white;
-    border-radius: 16px;
+    background: #ffffff;
+    border-radius: 18px;
     padding: 2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 35px rgba(15, 23, 42, 0.15);
+}
+
+.historial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.6rem;
+}
+
+.historial-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.historial-header h2 svg {
+    color: var(--primary);
+    font-size: 1.4rem;
+}
+
+.historial-header p {
+    margin-top: 0.2rem;
+    font-size: 0.9rem;
+    color: var(--gray-700);
+}
+
+.historial-header-icon {
+    font-size: 2.2rem;
+    color: var(--primary);
+    opacity: 0.8;
 }
 
 .no-data {
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 3rem 2rem;
     color: var(--gray-700);
+    background: var(--gray-50);
+    border-radius: 12px;
 }
 
 .no-data p:first-child {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.no-data-detail {
+    font-size: 0.9rem;
+}
+
+.tabla-historial {
+    overflow-x: auto;
+}
+
+.tabla-historial table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.tabla-historial thead {
+    background: var(--gray-100);
+}
+
+.tabla-historial th,
+.tabla-historial td {
+    padding: 0.75rem 0.8rem;
+    border-bottom: 1px solid var(--gray-200);
+    text-align: left;
+}
+
+.tabla-historial th {
+    font-weight: 600;
+    color: var(--gray-800);
 }
 
 .patron-cell {
     font-family: 'Courier New', monospace;
     font-weight: 600;
-    color: var(--primary);
+    color: var(--primary-dark);
 }
 
 .archivo-cell {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--gray-700);
 }
 
 .badge-count {
     display: inline-block;
-    background: var(--primary);
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
+    min-width: 2rem;
+    text-align: center;
+    background: #e0f7f4;
+    color: var(--primary-dark);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
     font-weight: 600;
 }
 
 .btn-detalle {
-    padding: 0.5rem 1rem;
-    background: var(--primary);
-    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
     border: none;
-    border-radius: 6px;
+    background: var(--primary);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 500;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.3s;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn-detalle svg {
+    font-size: 1rem;
 }
 
 .btn-detalle:hover {
     background: var(--primary-dark);
+    transform: translateY(-1px);
 }
 
 /* Modal */
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
     padding: 1rem;
+    z-index: 1000;
 }
 
 .modal-content {
-    background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    max-width: 800px;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 1.8rem 1.8rem 1.4rem;
     width: 100%;
+    max-width: 780px;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
 
 .modal-close {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: var(--gray-200);
+    top: 0.9rem;
+    right: 0.9rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
     border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    background: var(--gray-100);
     cursor: pointer;
-    font-size: 1.25rem;
-    transition: background 0.3s;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--gray-700);
+    transition: background 0.2s ease;
 }
 
 .modal-close:hover {
-    background: var(--gray-300);
+    background: var(--gray-200);
+}
+
+.modal-content h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 1rem;
+}
+
+.modal-content h3 svg {
+    color: var(--primary);
 }
 
 .detalle-info {
     background: var(--gray-50);
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin: 1rem 0;
+    padding: 1rem 1.1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
 }
 
 .info-item {
-    margin-bottom: 0.75rem;
-}
-
-.info-item:last-child {
-    margin-bottom: 0;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+    color: var(--gray-800);
 }
 
 .info-item strong {
-    color: var(--gray-900);
-    margin-right: 0.5rem;
+    font-weight: 600;
+    margin-right: 0.3rem;
 }
 
 .info-item code {
-    background: white;
-    padding: 0.25rem 0.5rem;
+    background: #e0f7f4;
+    padding: 0.1rem 0.3rem;
     border-radius: 4px;
     font-family: 'Courier New', monospace;
-    color: var(--primary);
+    font-size: 0.85rem;
+    color: var(--primary-dark);
 }
 
-.detalle-resultados {
-    margin-top: 1rem;
+.detalle-resultados table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-top: 0.6rem;
+}
+
+.detalle-resultados th,
+.detalle-resultados td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.detalle-resultados th {
+    background: var(--gray-100);
+    font-weight: 600;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge.exacta {
+    background: #d1fae5;
+    color: #15803d;
+}
+
+.badge.aproximada {
+    background: #fef3c7;
+    color: #b45309;
 }
 
 .no-results-modal {
+    margin-top: 1rem;
+    padding: 1.4rem;
+    border-radius: 10px;
+    background: var(--gray-50);
     text-align: center;
-    padding: 2rem;
+    font-size: 0.9rem;
     color: var(--gray-700);
 }
