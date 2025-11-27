@@ -6,6 +6,8 @@
 #include <chrono>
 
 #include "kmp.hpp"
+#include "rabin_karp.hpp"
+#include "aho_corasick.hpp"
 #include "csv_reader.hpp"
 
 // --- Estructura para la salida JSON ---
@@ -61,16 +63,17 @@ void generateJSONOutput(const std::string& outputFilename, bool success, const s
 int main(int argc, char* argv[]) {
     
     // 1. Manejo de Argumentos
-    // El ejecutable espera 3 argumentos: [ruta_csv] [patron_adn] [ruta_salida_json]
-    if (argc != 4) {
-        std::cerr << "Uso: " << argv[0] << " <ruta_csv> <patron_adn> <ruta_salida_json>" << std::endl;
+    // El ejecutable espera 4 argumentos: [ruta_csv] [patron_adn] [algoritmo] [ruta_salida_json]
+    if (argc != 5) { 
+        std::cerr << "Uso: " << argv[0] << " <ruta_csv> <patron_adn> <algoritmo> <ruta_salida_json>" << std::endl;
         generateJSONOutput("dna-cpp/results/error.json", false, "Argumentos incompletos o incorrectos.", {}, 0);
         return 1;
     }
     
     const std::string csv_path = argv[1];
     const std::string pattern = argv[2];
-    const std::string json_output_path = argv[3];
+    const std::string algorithm_name = argv[3];
+    const std::string json_output_path = argv[4];
     
     // Validar patrón ( verifica longitud)
     if (pattern.empty()) {
@@ -97,7 +100,20 @@ int main(int argc, char* argv[]) {
         const std::string& name = suspect.first;
         const std::string& dna_chain = suspect.second;
         
-        std::vector<int> matches = KMPSearch(dna_chain, pattern);
+        std::vector<int> matches;
+
+        // --- LÓGICA DE SELECCIÓN DEL ALGORITMO ---
+        if (algorithm_name == "KMP") {
+            matches = KMPSearch(dna_chain, pattern);
+        } else if (algorithm_name == "RK") { 
+            matches = RabinKarpSearch(dna_chain, pattern);
+        } else if (algorithm_name == "AC") { 
+            matches = AhoCorasickSearch(dna_chain, pattern);
+        } else {
+            std::cerr << "ERROR: Algoritmo no reconocido: " << algorithm_name << std::endl;
+            generateJSONOutput(json_output_path, false, "Algoritmo no reconocido.", {}, 0);
+            return 1;
+        }
         
         if (!matches.empty()) {
             total_matches += matches.size();
